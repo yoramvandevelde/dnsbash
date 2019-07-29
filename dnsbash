@@ -1,0 +1,85 @@
+#!/bin/bash
+
+## Repo: https://github.com/yoramvandevelde
+## Contact: _@sp2.io 
+
+echo -e "> dnsbasher\\n"
+
+## Debug
+#set -x
+
+## Some sane defaults to add security/robustness
+IFS=$' \t\n'
+
+## Exit control
+#  In loops "normal" ctrl+c stops the command in the loop
+#  This trap will exit the script. The function will clean
+#  up the environment and exit. 
+trap ctrl_c INT
+trap ctrl_c SIGINT
+trap ctrl_c SIGTERM
+
+function ctrl_c() {
+	/usr/bin/printf "\\b\\bStopping...\\n"
+	/usr/bin/tput cnorm
+	exit 0
+}
+
+DIG="/usr/bin/dig @8.8.8.8"
+
+## Arguments
+DOMAIN="$1"
+WORDLIST="$2"
+[ -z "$DOMAIN" ] && exit
+[ -z "$2" ] && \
+	WORDLIST="./wordlist.example"
+
+## Count lines in file to use for magic loop
+echo "  [+] dnsbashing $DOMAIN"
+COUNT=$(wc -l "$WORDLIST" | egrep -o '[0-9]{1,}')
+echo "  [+] Using wordlist: $WORDLIST" 
+echo "  [+] Wordlist contains $COUNT lines."
+
+## Check DNS for wildcard record with random string
+RANDSTR=$(openssl rand -hex 6)
+WILDCARD=$($DIG +noall +answer "$RANDSTR.$DOMAIN" | grep -v "CNAME" | awk '{print $5}')
+[[ ! -z "$WILDCARD" ]] && echo -e "  [!] Wildcard record found: $WILDCARD. \\n  [-] We will ignore answers with this IP as a result." 
+echo 
+
+## Initialize spinner
+x=0
+sp="/-\\|"
+
+## Make terminal cursor invisible for the spinner
+/usr/bin/tput civis 
+
+QUERYCOUNT=0
+START_TIME=$SECONDS
+
+## This is where the magic happens...
+for i in $(cat $WORDLIST); 
+do
+	## Spin!
+	printf "${sp:x++%${#sp}:1}"
+	## Reset to beginning of line
+	printf "\\b"
+
+	# The actual DNS queries
+	if [ -z "$WILDCARD" ]; then
+		$DIG +noall +answer "$i.$DOMAIN" 2> /dev/null 
+	else
+		$DIG +noall +answer "$i.$DOMAIN" 2> /dev/null | /usr/bin/grep -v -E "CNAME.*$DOMAIN|$WILDCARD"
+	fi
+	
+	(( QUERYCOUNT += 1 ))
+	echo -n
+done
+
+ELAPSED_TIME=$((SECONDS - START_TIME))
+
+## Some spinner cleanup and stat printing.
+/usr/bin/tput cnorm
+printf "\\b\\b\\b"
+echo -e "     \\nPerformed $QUERYCOUNT queries in $ELAPSED_TIME seconds.\\n"
+echo -e "Done"
+
