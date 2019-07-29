@@ -36,7 +36,7 @@ WORDLIST="$2"
 
 ## Count lines in file to use for magic loop
 echo "  [+] dnsbashing $DOMAIN"
-COUNT=$(wc -l "$WORDLIST" | egrep -o '[0-9]{1,}')
+COUNT=$(wc -l "$WORDLIST" | grep -o -E '\b([0-9]+)')
 echo "  [+] Using wordlist: $WORDLIST" 
 echo "  [+] Wordlist contains $COUNT lines."
 
