@@ -28,7 +28,7 @@ function usage() {
 	exit 1
 }
 
-DIG="/usr/bin/dig +tcp @1.1.1.1"
+DIG="/usr/bin/dig +tcp @8.8.8.8"
 
 ## Arguments
 DOMAIN="$1"
