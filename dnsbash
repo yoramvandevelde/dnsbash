@@ -3,8 +3,6 @@
 ## Repo: https://github.com/yoramvandevelde
 ## Contact: _@sp2.io 
 
-echo -e "> dnsbasher\\n"
-
 ## Debug
 #set -x
 
@@ -25,18 +23,24 @@ function ctrl_c() {
 	exit 0
 }
 
-DIG="/usr/bin/dig @8.8.8.8"
+function usage() {
+	echo "Usage: $0 <domain> [wordlist]"
+	exit 1
+}
+
+DIG="/usr/bin/dig +tcp @1.1.1.1"
 
 ## Arguments
 DOMAIN="$1"
 WORDLIST="$2"
-[ -z "$DOMAIN" ] && exit
-[ -z "$2" ] && \
-	WORDLIST="./wordlist.example"
+[ -z "$DOMAIN" ] && usage
+[ -z "$2" ] && WORDLIST="./wordlist.example"
+
+echo -e "> dnsbash\\n"
 
 ## Count lines in file to use for magic loop
 echo "  [+] dnsbashing $DOMAIN"
-COUNT=$(wc -l "$WORDLIST" | grep -o -E '\b([0-9]+)')
+COUNT=$(wc -l "$WORDLIST" | grep -o -E '\b([0-9]+)\b')
 echo "  [+] Using wordlist: $WORDLIST" 
 echo "  [+] Wordlist contains $COUNT lines."
 
