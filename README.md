@@ -1,6 +1,14 @@
 # dnsbash
-DNS bruteforcer written in bash
+Just a small DNS bruteforcer written in bash.
 
+### Usage
+```
+./dnsbash <domain> [wordlist]
+```
+
+The wordlist is optional. When none is provided dnsbash uses the provider example wordlist. If you need a good wordlist checkout [https://github.com/danielmiessler/SecLists/tree/master/Discovery/DNS](https://github.com/danielmiessler/SecLists/tree/master/Discovery/DNS).
+
+### Example
 ```
 [yoram]#[~] _  dnsbash kali.org ./wordlist.example
 > dnsbasher
